@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>야간 스마트폰 탈출 작전! 🌙 - 열공 & 숙면 타이머</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            mint: '#A8E6CF',
+                            mintDark: '#56C596',
+                            coral: '#FF8B94',
+                            yellow: '#FFD3B6',
+                            purple: '#A890FE',
+                            purpleDark: '#8C62FF',
+                            bgLight: '#F7F9FC',
+                            cardBg: '#FFFFFF',
+                            textDark: '#2D3748'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Gothic A1', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Gothic A1', sans-serif;
+            background-color: #F0F4F8;
+            background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .soft-shadow {
+            box-shadow: 0 10px 25px -5px rgba(168, 144, 254, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        .bounce-gentle {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-3%); }
+            50% { transform: translateY(0); }
+        }
+        .strobe-alert {
+            animation: strobe 0.5s infinite alternate;
+        }
+        @keyframes strobe {
+            0% { background-color: rgba(239, 68, 68, 0.95); }
+            100% { background-color: rgba(153, 27, 27, 0.98); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-brand-textDark flex flex-col justify-between p-3 sm:p-6">
+
+    <header class="max-w-xl mx-auto w-full flex items-center justify-between py-3 px-4 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-white mb-4">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl sm:text-3xl">🌙</span>
+            <div>
+                <h1 class="font-extrabold text-base sm:text-lg text-slate-800 leading-tight">스마트폰 탈출 작전</h1>
+                <p class="text-xs text-slate-500 font-medium">내일 수업시간 집중도 200% UP!</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="openCodeModal()" class="px-3 py-1.5 bg-brand-purple/10 text-brand-purpleDark hover:bg-brand-purple/20 font-bold rounded-xl text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-code"></i>
+                <span>코드 복사</span>
+            </button>
+            <button onclick="toggleModal('infoModal')" class="p-2 text-slate-500 hover:text-brand-purple hover:bg-slate-100 rounded-xl transition">
+                <i class="fa-solid fa-circle-question text-xl"></i>
+            </button>
+            <button onclick="toggleModal('statsModal')" class="p-2 text-slate-500 hover:text-brand-purple hover:bg-slate-100 rounded-xl transition">
+                <i class="fa-solid fa-fire text-xl text-orange-500"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto w-full bg-white rounded-3xl soft-shadow p-5 sm:p-8 border border-slate-100 relative overflow-hidden my-auto">
+        
+        <!-- Wizard Navigation / Progress Indicator -->
+        <div id="wizardHeader" class="mb-6">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-400 mb-2 px-1">
+                <span id="stepTag" class="text-brand-purple uppercase tracking-wider">Step 1 / 3</span>
+                <span id="stepTitle">사용 제한 시간 설정</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div id="stepProgress" class="bg-gradient-to-r from-brand-mintDark to-brand-purple h-full w-1/3 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <div id="step1" class="space-y-6">
+            <div class="text-center py-2">
+                <div class="text-5xl mb-3 bounce-gentle">⏳</div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800">얼마나 제한시간을 걸까요?</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">1분 단위로 정밀하게 시간을 조절할 수 있어요!</p>
+            </div>
+
+            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
+                <!-- Direct Input & Minute Adjustment -->
+                <div class="flex justify-center items-center space-x-3">
+                    <div class="flex flex-col items-center">
+                        <label class="text-xs font-bold text-slate-500 mb-1">시간 (Hours)</label>
+                        <input type="number" id="timerHoursInput" min="0" max="23" value="0" class="w-24 text-center bg-white border-2 border-slate-200 rounded-xl px-2 py-3 text-2xl font-black text-slate-700 focus:outline-none focus:border-brand-purple">
+                    </div>
+                    <span class="text-2xl font-bold text-slate-400 mt-5">:</span>
+                    <div class="flex flex-col items-center">
+                        <label class="text-xs font-bold text-slate-500 mb-1">분 (Minutes)</label>
+                        <input type="number" id="timerMinutesInput" min="0" max="59" value="30" class="w-24 text-center bg-white border-2 border-slate-200 rounded-xl px-2 py-3 text-2xl font-black text-slate-700 focus:outline-none focus:border-brand-purple">
+                    </div>
+                </div>
+
+                <!-- Minute Plus / Minus Adjustment Controls -->
+                <div class="flex justify-center items-center gap-1.5 flex-wrap pt-1">
+                    <button onclick="adjustMinutes(-10)" class="px-2.5 py-1.5 bg-white text-slate-600 rounded-lg border border-slate-200 text-xs font-bold hover:bg-slate-100 transition">-10분</button>
+                    <button onclick="adjustMinutes(-1)" class="px-2.5 py-1.5 bg-white text-slate-600 rounded-lg border border-slate-200 text-xs font-bold hover:bg-slate-100 transition">-1분</button>
+                    <button onclick="adjustMinutes(1)" class="px-2.5 py-1.5 bg-white text-slate-600 rounded-lg border border-slate-200 text-xs font-bold hover:bg-slate-100 transition">+1분</button>
+                    <button onclick="adjustMinutes(5)" class="px-2.5 py-1.5 bg-white text-slate-600 rounded-lg border border-slate-200 text-xs font-bold hover:bg-slate-100 transition">+5분</button>
+                    <button onclick="adjustMinutes(10)" class="px-2.5 py-1.5 bg-white text-slate-600 rounded-lg border border-slate-200 text-xs font-bold hover:bg-slate-100 transition">+10분</button>
+                </div>
+
+                <!-- Fast Preset Buttons -->
+                <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-200/60">
+                    <button onclick="setPresetTime(0, 15)" class="py-2 text-xs font-bold bg-white text-slate-600 rounded-xl border border-slate-200 hover:border-brand-purple hover:text-brand-purple transition">⚡ 15분</button>
+                    <button onclick="setPresetTime(0, 30)" class="py-2 text-xs font-bold bg-white text-slate-600 rounded-xl border border-slate-200 hover:border-brand-purple hover:text-brand-purple transition">🌙 30분</button>
+                    <button onclick="setPresetTime(1, 0)" class="py-2 text-xs font-bold bg-white text-slate-600 rounded-xl border border-slate-200 hover:border-brand-purple hover:text-brand-purple transition">📚 1시간</button>
+                    <button onclick="setPresetTime(2, 0)" class="py-2 text-xs font-bold bg-white text-slate-600 rounded-xl border border-slate-200 hover:border-brand-purple hover:text-brand-purple transition">🛌 2시간</button>
+                </div>
+            </div>
+
+            <button onclick="goToStep(2)" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg transition duration-200 text-base flex items-center justify-center space-x-2">
+                <span>다음: 경보음 & 이미지 커스텀</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        </div>
+
+        <div id="step2" class="space-y-6 hidden">
+            <div class="text-center py-2">
+                <div class="text-5xl mb-3">🚨</div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800">경보음과 사이렌 이미지 설정</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">원하는 MP3 소리와 이미지 파일도 직접 업로드할 수 있어요!</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Sound Type Selection & Custom Sound Upload -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">경보음 소리 선택</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="soundType" value="siren" class="peer hidden" checked onchange="toggleCustomAudioInput(false)">
+                            <div class="p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-center peer-checked:border-brand-purple peer-checked:bg-purple-50 transition">
+                                <div class="text-xl mb-1">📢</div>
+                                <div class="text-[11px] font-bold text-slate-700">사이렌</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="soundType" value="digital" class="peer hidden" onchange="toggleCustomAudioInput(false)">
+                            <div class="p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-center peer-checked:border-brand-purple peer-checked:bg-purple-50 transition">
+                                <div class="text-xl mb-1">⏰</div>
+                                <div class="text-[11px] font-bold text-slate-700">디지털</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="soundType" value="nuclear" class="peer hidden" onchange="toggleCustomAudioInput(false)">
+                            <div class="p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-center peer-checked:border-brand-purple peer-checked:bg-purple-50 transition">
+                                <div class="text-xl mb-1">☣️</div>
+                                <div class="text-[11px] font-bold text-slate-700">비상경보</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="soundType" value="custom" id="soundTypeCustomRadio" class="peer hidden" onchange="toggleCustomAudioInput(true)">
+                            <div class="p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-center peer-checked:border-brand-purple peer-checked:bg-purple-50 transition">
+                                <div class="text-xl mb-1">🎵</div>
+                                <div class="text-[11px] font-bold text-slate-700">내 파일</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Custom File Upload Box (Audio) -->
+                    <div id="customAudioContainer" class="hidden bg-purple-50 p-3 rounded-xl border border-purple-200 space-y-2">
+                        <label class="block text-xs font-bold text-purple-900">내 오디오 파일 업로드 (.mp3, .wav 등)</label>
+                        <input type="file" id="customAudioFile" accept="audio/*" onchange="handleAudioUpload(event)" class="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-purple file:text-white hover:file:bg-brand-purpleDark">
+                        <div id="audioFileName" class="text-[11px] font-semibold text-purple-700 truncate">선택된 파일 없음</div>
+                    </div>
+                </div>
+
+                <!-- Test Sound Button -->
+                <button type="button" onclick="testSound()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl border border-slate-200 text-xs flex items-center justify-center space-x-2 transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span id="soundTestBtnText">경보음 미리듣기 (클릭)</span>
+                </button>
+
+                <!-- Custom Image Upload Section -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+                    <label class="block text-xs font-bold text-slate-600">🚨 경보 화면 이미지 설정 (선택사항)</label>
+                    <p class="text-[11px] text-slate-500">타이머가 울릴 때 나타날 나만의 이미지(GIF, PNG, JPG)를 넣어보세요!</p>
+                    <div class="flex items-center space-x-3 pt-1">
+                        <input type="file" id="customImageFile" accept="image/*" onchange="handleImageUpload(event)" class="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-white hover:file:bg-slate-900">
+                    </div>
+                    <div id="imagePreviewBox" class="hidden flex items-center gap-2 mt-2 pt-2 border-t border-slate-200">
+                        <img id="imagePreview" src="" alt="경고 이미지 미리보기" class="w-12 h-12 object-cover rounded-lg border border-slate-300">
+                        <span class="text-xs text-slate-600 font-bold">커스텀 사이렌 이미지 적용됨</span>
+                        <button onclick="removeCustomImage()" class="text-xs text-red-500 ml-auto font-bold">삭제</button>
+                    </div>
+                </div>
+
+                <!-- Sound Duration & Mission Toggle -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <label class="block text-xs font-bold text-slate-600 mb-2">경보 지속 시간 (초)</label>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" id="alarmDuration" min="10" max="120" value="30" step="10" oninput="updateDurationText(this.value)" class="w-full accent-brand-purple">
+                        <span id="alarmDurationText" class="text-sm font-extrabold text-brand-purple w-16 text-right">30초</span>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+                            <span>🧠 잠금해제 미션 모드</span>
+                            <span class="bg-amber-200 text-amber-800 text-[10px] px-1.5 py-0.5 rounded-full">추천</span>
+                        </div>
+                        <p class="text-[11px] text-amber-700 mt-0.5">수학 문제를 맞춰야 알람이 꺼집니다.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="strictMissionToggle" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button onclick="goToStep(1)" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl transition text-base">이전</button>
+                <button onclick="goToStep(3)" class="w-2/3 bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg transition duration-200 text-base flex items-center justify-center space-x-2">
+                    <span>다음: 예외 앱 선택</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="step3" class="space-y-6 hidden">
+            <div class="text-center py-2">
+                <div class="text-5xl mb-3">📱</div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800">제한하지 않을 앱 고르기</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">긴급 연락이나 학습 필수 앱은 예외로 해두세요.</p>
+            </div>
+
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <label class="flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                        <input type="checkbox" class="w-4 h-4 text-brand-purple rounded accent-brand-purple" checked>
+                        <span class="text-xs font-bold text-slate-700">📞 전화 (기본 전화)</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                        <input type="checkbox" class="w-4 h-4 text-brand-purple rounded accent-brand-purple" checked>
+                        <span class="text-xs font-bold text-slate-700">💬 문자메시지 (SMS)</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                        <input type="checkbox" class="w-4 h-4 text-brand-purple rounded accent-brand-purple">
+                        <span class="text-xs font-bold text-slate-700">📖 영단어 사전</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-purple-50 transition">
+                        <input type="checkbox" class="w-4 h-4 text-brand-purple rounded accent-brand-purple">
+                        <span class="text-xs font-bold text-slate-700">🎧 인강 시청 앱</span>
+                    </label>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">직접 예외 앱 추가하기</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="customAppInput" placeholder="예: 카카오톡..." class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple">
+                        <button type="button" onclick="addCustomApp()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap">추가</button>
+                    </div>
+                    <div id="customAppList" class="flex flex-wrap gap-1.5 mt-2"></div>
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button onclick="goToStep(2)" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl transition text-base">이전</button>
+                <button onclick="startFocusTimer()" class="w-2/3 bg-gradient-to-r from-brand-mintDark to-brand-purple hover:opacity-95 text-white font-extrabold py-4 rounded-2xl shadow-lg transition duration-200 text-base flex items-center justify-center space-x-2">
+                    <span>🚀 제한 타이머 시작!</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="activeTimerView" class="space-y-6 hidden text-center">
+            <div class="inline-block px-3 py-1 bg-purple-100 text-brand-purple font-extrabold rounded-full text-xs animate-pulse">
+                🔥 집중 모드 작동 중! 스마트폰 사용 자제
+            </div>
+
+            <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+                <svg class="w-full h-full transform -rotate-90">
+                    <circle cx="96" cy="96" r="88" stroke="#E2E8F0" stroke-width="12" fill="transparent" />
+                    <circle id="timerProgressCircle" cx="96" cy="96" r="88" stroke="#A890FE" stroke-width="12" fill="transparent" stroke-dasharray="552" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000" />
+                </svg>
+                <div class="absolute flex flex-col items-center">
+                    <span id="timerDisplay" class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">00:00:00</span>
+                    <span class="text-[11px] font-bold text-slate-400 mt-1">남은 스마트폰 제한 시간</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <p id="motivationalQuote" class="text-xs font-bold text-slate-600">"오늘의 숙면이 내일 시험의 10점을 바꿉니다!" 🌙</p>
+            </div>
+
+            <div class="pt-2 flex flex-col space-y-2">
+                <button onclick="togglePauseTimer()" id="pauseBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition">
+                    ⏸️ 일시 정지
+                </button>
+                <button onclick="stopTimerEarly()" class="w-full text-slate-400 hover:text-red-500 font-medium py-2 text-xs transition">
+                    타이머 중단하고 포기하기
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="alarmOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-white hidden strobe-alert">
+        <!-- Siren Image Display Container (Custom or Default Emoji) -->
+        <div id="alarmImageContainer" class="mb-4">
+            <div class="text-6xl sm:text-8xl animate-bounce">🚨</div>
+        </div>
+        
+        <h2 class="text-2xl sm:text-4xl font-black mb-2 text-center">제한 시간이 만료되었습니다!</h2>
+        <p class="text-sm sm:text-base font-bold text-red-100 mb-6 text-center">스마트폰을 내려놓고 내일을 위해 잠자리에 들 시간입니다! 🛌</p>
+
+        <div id="missionBox" class="bg-white text-slate-800 p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4">
+            <div class="text-center">
+                <span class="bg-red-100 text-red-600 font-extrabold text-xs px-2.5 py-1 rounded-full">잠금해제 미션</span>
+                <p class="text-xs text-slate-500 mt-2">알람을 끄려면 다음 문제를 정확히 계산하세요!</p>
+            </div>
+            <div class="text-center text-2xl font-black text-slate-800 py-2" id="mathProblem">
+                12 + 25 = ?
+            </div>
+            <input type="number" id="missionAnswer" placeholder="정답 입력" class="w-full text-center py-3 border-2 border-slate-200 rounded-xl font-bold text-lg focus:outline-none focus:border-brand-purple">
+            <button onclick="checkMissionAnswer()" class="w-full bg-red-500 hover:bg-red-600 text-white font-extrabold py-3 rounded-xl text-sm transition">
+                미션 완료 & 경보 끄기
+            </button>
+        </div>
+
+        <button id="directOffBtn" onclick="stopAlarm()" class="hidden bg-white text-red-600 font-black px-8 py-4 rounded-2xl shadow-xl text-lg hover:bg-slate-100 transition">
+            🔔 경보음 끄기 및 종료
+        </button>
+    </div>
+
+    <div id="focusLostOverlay" class="fixed inset-0 bg-slate-900/90 z-40 flex flex-col items-center justify-center p-6 text-white hidden backdrop-blur-md">
+        <div class="text-6xl mb-4">⚠️</div>
+        <h3 class="text-2xl font-black text-amber-400 mb-2">스마트폰 이탈 감지!</h3>
+        <p class="text-xs sm:text-sm text-slate-300 text-center max-w-xs mb-6">제한 시간이 지나기 전에 다른 앱으로 넘어가시면 안 돼요! 화면을 계속 유지해주세요.</p>
+        <button onclick="dismissFocusLost()" class="bg-amber-400 text-slate-900 font-black px-6 py-3 rounded-xl text-sm hover:bg-amber-300 transition">
+            다시 집중 화면으로 돌아가기
+        </button>
+    </div>
+
+    <div id="codeModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 max-w-2xl w-full space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center">
+                <h3 class="font-extrabold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-code text-brand-purple"></i>
+                    <span>전체 소스코드 복사하기</span>
+                </h3>
+                <button onclick="toggleModal('codeModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">아래 버튼을 눌러 전체 HTML 소스코드를 한 번에 클립보드에 복사할 수 있습니다.</p>
+            <div class="relative flex-1 bg-slate-900 rounded-2xl p-4 overflow-hidden flex flex-col">
+                <textarea id="codeTextarea" class="w-full h-full bg-transparent text-emerald-400 font-mono text-xs focus:outline-none resize-none" readonly></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="toggleModal('codeModal')" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl">닫기</button>
+                <button onclick="copyFullCode()" id="copyCodeBtn" class="px-5 py-2 bg-brand-purple hover:bg-brand-purpleDark text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>코드 전체 복사하기</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="statsModal" class="fixed inset-0 bg-black/50 z-30 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-extrabold text-lg text-slate-800">🔥 나의 디지털 클린 기록</h3>
+                <button onclick="toggleModal('statsModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="bg-orange-50 border border-orange-200 p-4 rounded-2xl flex items-center space-x-4">
+                <span class="text-4xl">🏆</span>
+                <div>
+                    <div class="text-xs text-orange-600 font-bold">연속 성공 스트릭</div>
+                    <div class="text-2xl font-black text-orange-900">3일째 성공 중!</div>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                야간 스마트폰 사용을 줄이면 뇌의 멜라토닌 분비가 촉진되어 수면의 질이 높아지고 다음날 학교 수업 집중도가 올라갑니다.
+            </p>
+            <button onclick="toggleModal('statsModal')" class="w-full bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">확인</button>
+        </div>
+    </div>
+
+    <div id="infoModal" class="fixed inset-0 bg-black/50 z-30 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-extrabold text-lg text-slate-800">💡 전문가 조언 및 가이드</h3>
+                <button onclick="toggleModal('infoModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+                <p><strong>Q. 왜 1분 단위 설정이 필요한가요?</strong><br>학생마다 공부 직후 잠들기 직전 필요한 자율 시간이 다르므로 1분 단위로 정밀하게 타이머를 설정할 수 있도록 개발되었습니다.</p>
+                <p><strong>Q. 커스텀 오디오 / 이미지 업로드?</strong><br>원하는 경보음(MP3)이나 재미있는 사이렌 GIF 이미지를 넣어 나만의 맞춤형 타이머로 커스텀이 가능합니다.</p>
+            </div>
+            <button onclick="toggleModal('infoModal')" class="w-full bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let currentStep = 1;
+        let totalSeconds = 0;
+        let remainingSeconds = 0;
+        let timerInterval = null;
+        let audioCtx = null;
+        let isTestingSound = false;
+        let testSoundInterval = null;
+        let alarmSoundInterval = null;
+        let isPaused = false;
+        let currentMathAnswer = 0;
+
+        // Custom File States
+        let customAudioDataUrl = null;
+        let customAudioElement = null;
+        let customImageDataUrl = null;
+
+        const quotes = [
+            '"오늘의 숙면이 내일 시험의 10점을 바꿉니다!" 🌙',
+            '"스마트폰을 놓는 순간, 당신의 꿈에 한 걸음 더 가까워집니다!" 🚀',
+            '"뇌도 쉴 시간이 필요해요. 지금 스마트폰을 내려놓으세요!" 🧠',
+            '"내일 수업시간에 1등으로 대답하는 내 모습을 상상해보세요!" 💯'
+        ];
+
+        // 1-Minute Precise Time Adjustment Logic
+        function adjustMinutes(delta) {
+            const hInput = document.getElementById('timerHoursInput');
+            const mInput = document.getElementById('timerMinutesInput');
+            
+            let curH = parseInt(hInput.value) || 0;
+            let curM = parseInt(mInput.value) || 0;
+
+            let totalM = (curH * 60) + curM + delta;
+            if (totalM < 0) totalM = 0;
+
+            hInput.value = Math.floor(totalM / 60);
+            mInput.value = totalM % 60;
+        }
+
+        function setPresetTime(hours, minutes) {
+            document.getElementById('timerHoursInput').value = hours;
+            document.getElementById('timerMinutesInput').value = minutes;
+        }
+
+        function updateDurationText(val) {
+            document.getElementById('alarmDurationText').textContent = val + '초';
+        }
+
+        // Custom File Handling (Audio & Image)
+        function toggleCustomAudioInput(show) {
+            const container = document.getElementById('customAudioContainer');
+            if (show) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function handleAudioUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('audioFileName').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    customAudioDataUrl = e.target.result;
+                    if (customAudioElement) {
+                        customAudioElement.pause();
+                    }
+                    customAudioElement = new Audio(customAudioDataUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    customImageDataUrl = e.target.result;
+                    document.getElementById('imagePreview').src = customImageDataUrl;
+                    document.getElementById('imagePreviewBox').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeCustomImage() {
+            customImageDataUrl = null;
+            document.getElementById('customImageFile').value = '';
+            document.getElementById('imagePreviewBox').classList.add('hidden');
+        }
+
+        // Audio Synthesizer & Custom Audio Player
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBeep(freq, type, duration) {
+            try {
+                initAudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log('Audio Context error', e);
+            }
+        }
+
+        function triggerSoundPulse() {
+            const soundTypeRadio = document.querySelector('input[name="soundType"]:checked');
+            const soundType = soundTypeRadio ? soundTypeRadio.value : 'siren';
+
+            if (soundType === 'custom' && customAudioElement) {
+                customAudioElement.currentTime = 0;
+                customAudioElement.play().catch(e => console.log('Audio playback error', e));
+            } else if (soundType === 'siren') {
+                playBeep(880, 'sawtooth', 0.3);
+                setTimeout(() => playBeep(440, 'sawtooth', 0.3), 300);
+            } else if (soundType === 'digital') {
+                playBeep(1200, 'square', 0.15);
+                setTimeout(() => playBeep(1200, 'square', 0.15), 200);
+            } else if (soundType === 'nuclear') {
+                playBeep(300, 'triangle', 0.5);
+            }
+        }
+
+        function testSound() {
+            const btnText = document.getElementById('soundTestBtnText');
+            if (isTestingSound) {
+                clearInterval(testSoundInterval);
+                if (customAudioElement) customAudioElement.pause();
+                isTestingSound = false;
+                btnText.textContent = '경보음 미리듣기 (클릭)';
+            } else {
+                initAudioContext();
+                isTestingSound = true;
+                btnText.textContent = '⏹️ 미리듣기 중지';
+                triggerSoundPulse();
+                const isCustom = document.getElementById('soundTypeCustomRadio').checked;
+                testSoundInterval = setInterval(triggerSoundPulse, isCustom ? 2000 : 700);
+                setTimeout(() => {
+                    if (isTestingSound) testSound();
+                }, 4000);
+            }
+        }
+
+        // Navigation Step Manager
+        function goToStep(step) {
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+            currentStep = step;
+            document.getElementById(`step${currentStep}`).classList.remove('hidden');
+
+            const progress = document.getElementById('stepProgress');
+            const stepTag = document.getElementById('stepTag');
+            const stepTitle = document.getElementById('stepTitle');
+
+            if (step === 1) {
+                progress.style.width = '33%';
+                stepTag.textContent = 'Step 1 / 3';
+                stepTitle.textContent = '사용 제한 시간 설정';
+            } else if (step === 2) {
+                progress.style.width = '66%';
+                stepTag.textContent = 'Step 2 / 3';
+                stepTitle.textContent = '경보음 & 이미지 커스텀';
+            } else if (step === 3) {
+                progress.style.width = '100%';
+                stepTag.textContent = 'Step 3 / 3';
+                stepTitle.textContent = '예외 앱 및 최종 시작';
+            }
+        }
+
+        function addCustomApp() {
+            const input = document.getElementById('customAppInput');
+            const appName = input.value.trim();
+            if (appName) {
+                const list = document.getElementById('customAppList');
+                const badge = document.createElement('span');
+                badge.className = "inline-flex items-center bg-purple-100 text-brand-purple text-[11px] font-bold px-2.5 py-1 rounded-lg";
+                badge.innerHTML = `✓ ${appName} <button onclick="this.parentElement.remove()" class="ml-1.5 text-purple-400 hover:text-purple-700">✕</button>`;
+                list.appendChild(badge);
+                input.value = '';
+            }
+        }
+
+        // Timer Logic
+        function startFocusTimer() {
+            const hours = parseInt(document.getElementById('timerHoursInput').value) || 0;
+            const minutes = parseInt(document.getElementById('timerMinutesInput').value) || 0;
+            totalSeconds = (hours * 3600) + (minutes * 60);
+
+            if (totalSeconds <= 0) {
+                alert('제한 시간을 최소 1분 이상 설정해 주세요!');
+                return;
+            }
+
+            remainingSeconds = totalSeconds;
+            
+            document.getElementById('wizardHeader').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('activeTimerView').classList.remove('hidden');
+
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('motivationalQuote').textContent = randomQuote;
+
+            updateTimerDisplay();
+
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+
+            timerInterval = setInterval(tickTimer, 1000);
+        }
+
+        function tickTimer() {
+            if (isPaused) return;
+
+            remainingSeconds--;
+            updateTimerDisplay();
+
+            if (remainingSeconds <= 0) {
+                clearInterval(timerInterval);
+                triggerAlarm();
+            }
+        }
+
+        function updateTimerDisplay() {
+            const hrs = Math.floor(remainingSeconds / 3600);
+            const mins = Math.floor((remainingSeconds % 3600) / 60);
+            const secs = remainingSeconds % 60;
+
+            const formatted = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            document.getElementById('timerDisplay').textContent = formatted;
+
+            const circle = document.getElementById('timerProgressCircle');
+            const maxOffset = 552;
+            const progressRatio = remainingSeconds / totalSeconds;
+            circle.style.strokeDashoffset = maxOffset * (1 - progressRatio);
+        }
+
+        function togglePauseTimer() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            pauseBtn.textContent = isPaused ? '▶️ 다시 시작' : '⏸️ 일시 정지';
+        }
+
+        function stopTimerEarly() {
+            if (confirm('정말로 타이머를 포기하시겠습니까? 오늘 밤 숙면이 방해받을 수 있어요!')) {
+                clearInterval(timerInterval);
+                resetToHome();
+            }
+        }
+
+        function resetToHome() {
+            document.getElementById('activeTimerView').classList.add('hidden');
+            document.getElementById('wizardHeader').classList.remove('hidden');
+            goToStep(1);
+        }
+
+        // Trigger Alarm View with Custom Image and Sound
+        function triggerAlarm() {
+            const alarmOverlay = document.getElementById('alarmOverlay');
+            const isStrict = document.getElementById('strictMissionToggle').checked;
+            const missionBox = document.getElementById('missionBox');
+            const directOffBtn = document.getElementById('directOffBtn');
+
+            // Render Custom Image or Fallback Emoji
+            const imgContainer = document.getElementById('alarmImageContainer');
+            if (customImageDataUrl) {
+                imgContainer.innerHTML = `<img src="${customImageDataUrl}" class="max-w-[200px] max-h-[200px] object-contain rounded-2xl border-4 border-white shadow-2xl animate-bounce" />`;
+            } else {
+                imgContainer.innerHTML = `<div class="text-6xl sm:text-8xl animate-bounce">🚨</div>`;
+            }
+
+            if (isStrict) {
+                const num1 = Math.floor(Math.random() * 40) + 10;
+                const num2 = Math.floor(Math.random() * 40) + 10;
+                currentMathAnswer = num1 + num2;
+                document.getElementById('mathProblem').textContent = `${num1} + ${num2} = ?`;
+                document.getElementById('missionAnswer').value = '';
+                missionBox.classList.remove('hidden');
+                directOffBtn.classList.add('hidden');
+            } else {
+                missionBox.classList.add('hidden');
+                directOffBtn.classList.remove('hidden');
+            }
+
+            alarmOverlay.classList.remove('hidden');
+
+            initAudioContext();
+            triggerSoundPulse();
+            const isCustom = document.getElementById('soundTypeCustomRadio').checked;
+            alarmSoundInterval = setInterval(triggerSoundPulse, isCustom ? 2500 : 600);
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("🚨 제한시간 만료! 스마트폰을 끌 시간입니다!", {
+                    body: "수업 집중을 위해 스마트폰을 내려놓고 잠자리에 드세요.",
+                    icon: customImageDataUrl || "https://placehold.co/100/FF8B94/ffffff?text=ALERT"
+                });
+            }
+
+            const durationSec = parseInt(document.getElementById('alarmDuration').value);
+            setTimeout(() => {
+                if (alarmSoundInterval) clearInterval(alarmSoundInterval);
+            }, durationSec * 1000);
+        }
+
+        function checkMissionAnswer() {
+            const userAns = parseInt(document.getElementById('missionAnswer').value);
+            if (userAns === currentMathAnswer) {
+                stopAlarm();
+            } else {
+                alert('틀렸습니다! 다시 계산해 주세요.');
+            }
+        }
+
+        function stopAlarm() {
+            if (alarmSoundInterval) clearInterval(alarmSoundInterval);
+            if (customAudioElement) customAudioElement.pause();
+            document.getElementById('alarmOverlay').classList.add('hidden');
+            alert('🎉 성공적으로 오늘 스마트폰 사용을 마무리하셨습니다! 잘 자요 🌙');
+            resetToHome();
+        }
+
+        // Focus Lost Handler
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && remainingSeconds > 0 && !isPaused && timerInterval) {
+                playBeep(900, 'square', 0.2);
+            } else if (!document.hidden && remainingSeconds > 0 && !isPaused && timerInterval) {
+                document.getElementById('focusLostOverlay').classList.remove('hidden');
+            }
+        });
+
+        function dismissFocusLost() {
+            document.getElementById('focusLostOverlay').classList.add('hidden');
+        }
+
+        // Code Modal & Copy Logic
+        function openCodeModal() {
+            const textarea = document.getElementById('codeTextarea');
+            textarea.value = document.documentElement.outerHTML;
+            toggleModal('codeModal');
+        }
+
+        function copyFullCode() {
+            const textarea = document.getElementById('codeTextarea');
+            textarea.select();
+            document.execCommand('copy');
+
+            const btn = document.getElementById('copyCodeBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>복사 완료!</span>`;
+            btn.classList.replace('bg-brand-purple', 'bg-emerald-600');
+
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.replace('bg-emerald-600', 'bg-brand-purple');
+            }, 2000);
+        }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
