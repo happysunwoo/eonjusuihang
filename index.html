@@ -1,0 +1,1550 @@
+<html lang="ko"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMjEzMjEwMzg5MDA4MzMzNDM5MCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzdkNTY0MGY5YjhkYThlYThfaW5kZXguaHRtbC0zMDcifSwiZXhwIjoxNzkwMTM1MTQ5LCJpYXQiOjE3OTAxMzE1NDksImFsZyI6IlJTMjU2In0.SCKEnYBqqzqkhlm1W6m2NpnU9Q1_p6yIAb6FtzvF7-usFqdkSsHJPmrGlx2XLvR85SElK-cc3t57FK3NyRwohBUdsTYtfrHqfLjsnrkc5xkGsZmcgivZbObyOCKEfZg-SyX9NLj2ZSsZK_ae00B2V1ueLttNR6-NbXmJJKu830-ebNA7EEI1Y8b026hZFCc-piMSahNrkCztNs5SPQSu7z__BCh3sIZhtvSONTp5TC94HmvJjGexsUWvsRc4MHvTZBYJnWMzWkbpmJkOtJKgcA0A3lnH9HuXqm3_s7uG8PU60DEyro7tjtJisi9KjPi0b6UfiN7FvFkLLbPdEJPRvQ","c_7d5640f9b8da8ea8_index.html-307")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>야간 스마트폰 집중 몰입 타이머</title>
+  <style>
+    :root {
+      --bg-color: #0f1015;
+      --card-bg: #1a1c23;
+      --card-border: #2e323e;
+      --accent-green: #00ff88;
+      --accent-blue: #00bfff;
+      --accent-red: #ff4757;
+      --text-main: #f1f2f6;
+      --text-sub: #a4b0be;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .top-bar {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--accent-green);
+    }
+
+    .btn-copy {
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .header-banner {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 22px;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .sub-title {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* 위저드 스텝 인디케이터 */
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      position: relative;
+      padding: 0 10px;
+    }
+
+    .step-indicator::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 30px;
+      right: 30px;
+      height: 2px;
+      background: var(--card-border);
+      z-index: 1;
+    }
+
+    .step-bubble {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 2;
+      transition: all 0.3s ease;
+    }
+
+    .step-bubble.active {
+      border-color: var(--accent-green);
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    .step-bubble.completed {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue);
+      color: #000;
+    }
+
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+
+    .time-inputs {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .input-num {
+      width: 80px;
+      padding: 12px;
+      font-size: 22px;
+      font-weight: bold;
+      background: #0f1015;
+      color: var(--accent-green);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .btn-step {
+      background: #2b2e3a;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-step:hover {
+      background: #3a3f50;
+    }
+
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn-preset {
+      background: rgba(0, 191, 255, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-preset:hover {
+      background: var(--accent-blue);
+      color: #000;
+    }
+
+    .file-upload-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px dashed var(--card-border);
+      padding: 14px;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+
+    .file-input {
+      display: block;
+      margin-top: 8px;
+      width: 100%;
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
+    .app-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .app-chip {
+      background: #252834;
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-chip button {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .app-chip button:hover {
+      color: var(--accent-red);
+    }
+
+    .add-app-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .text-input {
+      background: #0f1015;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .btn-add {
+      background: var(--accent-blue);
+      color: #000;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .preview-meme-box {
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .preview-meme-img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      object-fit: contain;
+    }
+
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .btn-nav {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-prev {
+      background: transparent;
+      color: var(--text-sub);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-prev:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .btn-next {
+      background: var(--accent-blue);
+      color: #000;
+      margin-left: auto;
+    }
+
+    .btn-next:hover {
+      background: #33ccff;
+    }
+
+    .btn-start {
+      background: var(--accent-green);
+      color: #000;
+      margin-left: auto;
+    }
+
+    .btn-start:hover {
+      background: #00e676;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px;
+    }
+
+    .summary-label {
+      color: var(--text-sub);
+    }
+
+    .summary-value {
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .timer-screen {
+      display: none;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .timer-display {
+      font-size: 64px;
+      font-weight: 800;
+      color: var(--accent-green);
+      letter-spacing: 2px;
+      margin: 20px 0;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .siren-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 16, 21, 0.96);
+      z-index: 9999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .siren-content {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-red);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(255, 71, 87, 0.3);
+    }
+
+    .siren-img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border: 1px solid var(--card-border);
+    }
+
+    .mission-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 15px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-body {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 680px;
+      padding: 24px;
+    }
+
+    textarea.code-area {
+      width: 100%;
+      height: 320px;
+      font-family: monospace;
+      font-size: 12px;
+      margin-top: 12px;
+      background: #0f1015;
+      color: var(--accent-green);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <span>야간 스마트폰 사용 관리 시스템</span>
+    <button class="btn-copy" onclick="openCodeModal()">코드 복사하기</button>
+  </div>
+
+  <div class="container">
+    <div class="header-banner">
+      <h1>스마트폰 제한 &amp; 공부 타이머</h1>
+      <div class="sub-title">단계별 설정을 완료한 후 타이머를 시작하세요.</div>
+    </div>
+
+    <!-- 스텝 인디케이터 -->
+    <div id="step-indicator" class="step-indicator">
+      <div class="step-bubble active" id="bubble-1">1</div>
+      <div class="step-bubble" id="bubble-2">2</div>
+      <div class="step-bubble" id="bubble-3">3</div>
+      <div class="step-bubble" id="bubble-4">4</div>
+    </div>
+
+    <!-- 설정 마법사 폼 -->
+    <div id="wizard-form">
+      
+      <!-- 1단계: 시간 설정 -->
+      <div class="step-panel active" id="step-1">
+        <div class="panel-title">1단계. 제한시간 설정</div>
+        
+        <div class="time-inputs">
+          <input type="number" id="input-min" class="input-num" value="30" min="1" max="999"> 분
+          <input type="number" id="input-sec" class="input-num" value="0" min="0" max="59"> 초
+          <button class="btn-step" onclick="addTime(1)">+1분</button>
+          <button class="btn-step" onclick="addTime(-1)">-1분</button>
+        </div>
+
+        <div class="preset-btns">
+          <button class="btn-preset" onclick="setPreset(15)">15분</button>
+          <button class="btn-preset" onclick="setPreset(30)">30분</button>
+          <button class="btn-preset" onclick="setPreset(45)">45분</button>
+          <button class="btn-preset" onclick="setPreset(60)">60분</button>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn-nav btn-next" onclick="nextStep(2)">다음 단계</button>
+        </div>
+      </div>
+
+      <!-- 2단계: 경보음 및 이미지 설정 -->
+      <div class="step-panel" id="step-2">
+        <div class="panel-title">2단계. 경보음 &amp; 대표 이미지 설정</div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="font-size:13px; color:var(--text-sub);">경보음 유형 선택:</label>
+          <select id="sound-select" class="text-input" style="width:100%; margin-top:6px;" onchange="toggleCustomAudioInput()">
+            <option value="siren">기본 전자 경보음 (Web Audio)</option>
+            <option value="custom">커스텀 오디오 파일 (.mp3 / .wav)</option>
+          </select>
+        </div>
+
+        <div id="custom-audio-box" class="file-upload-box" style="display:none;">
+          <label style="font-size:13px; color:var(--text-sub);">오디오 파일 업로드:</label>
+          <input type="file" id="audio-file" class="file-input" accept="audio/*" onchange="handleAudioUpload(event)">
+        </div>
+
+        <div class="file-upload-box">
+          <label style="font-size:13px; color:var(--text-sub);">경보 화면 이미지 변경 (선택):</label>
+          <input type="file" id="image-file" class="file-input" accept="image/*" onchange="handleImageUpload(event)">
+        </div>
+
+        <div class="preview-meme-box">
+          <div style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">현재 대표 이미지 미리보기:</div>
+          <img id="main-meme-img" class="preview-meme-img" alt="대표 이미지" src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'&gt;&lt;rect width='100%' height='100%' fill='%23111217'/&gt;&lt;circle cx='200' cy='140' r='90' fill='%232a1e17'/&gt;&lt;circle cx='165' cy='120' r='22' fill='%23ffffff'/&gt;&lt;circle cx='235' cy='120' r='22' fill='%23ffffff'/&gt;&lt;circle cx='165' cy='120' r='9' fill='%23000000'/&gt;&lt;circle cx='235' cy='120' r='9' fill='%23000000'/&gt;&lt;ellipse cx='200' cy='180' rx='30' ry='40' fill='%23000000'/&gt;&lt;path d='M 120 70 Q 165 95 180 80' stroke='%23000' stroke-width='6' fill='none'/&gt;&lt;path d='M 280 70 Q 235 95 220 80' stroke='%23000' stroke-width='6' fill='none'/&gt;&lt;text x='200' y='270' font-size='18' fill='%23ff4757' font-weight='bold' text-anchor='middle'&gt;스마트폰 과다사용 감지!&lt;/text&gt;&lt;/svg&gt;">
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn-nav btn-prev" onclick="prevStep(1)">이전</button>
+          <button class="btn-nav btn-next" onclick="nextStep(3)">다음 단계</button>
+        </div>
+      </div>
+
+      <!-- 3단계: 예외 앱 설정 -->
+      <div class="step-panel" id="step-3">
+        <div class="panel-title">3단계. 제한 예외 앱 목록</div>
+        <p style="font-size:13px; color:var(--text-sub); margin-bottom:10px;">타이머 진행 중 허용할 필수 앱을 등록하세요.</p>
+        
+        <div class="app-tags" id="app-tags">
+          <span class="app-chip">전화 <button onclick="removeApp(this)">✕</button></span>
+          <span class="app-chip">문자메시지 <button onclick="removeApp(this)">✕</button></span>
+          <span class="app-chip">카카오톡 <button onclick="removeApp(this)">✕</button></span>
+        </div>
+
+        <div class="add-app-row">
+          <input type="text" id="new-app-input" class="text-input" placeholder="허용할 앱 이름 입력">
+          <button class="btn-add" onclick="addApp()">추가</button>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn-nav btn-prev" onclick="prevStep(2)">이전</button>
+          <button class="btn-nav btn-next" onclick="nextStep(4)">다음 단계</button>
+        </div>
+      </div>
+
+      <!-- 4단계: 해제 미션 & 요약 -->
+      <div class="step-panel" id="step-4">
+        <div class="panel-title">4단계. 잠금 해제 미션 &amp; 설정 확인</div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="font-size:13px; color:var(--text-sub);">해제 미션 선택:</label>
+          <select id="mission-select" class="text-input" style="width:100%; margin-top:6px;" onchange="updateSummary()">
+            <option value="math">수학 연산 문제 풀기</option>
+            <option value="typing">지정된 문장 똑같이 입력하기</option>
+          </select>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); padding:15px; border-radius:10px; border:1px solid var(--card-border);">
+          <div class="summary-item">
+            <span class="summary-label">설정 시간</span>
+            <span class="summary-value" id="summary-time">30분 00초</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">경보 유형</span>
+            <span class="summary-value" id="summary-sound">기본 전자 경보음 (Web Audio)</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">허용 앱 수</span>
+            <span class="summary-value" id="summary-apps">3개</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">해제 미션</span>
+            <span class="summary-value" id="summary-mission">수학 연산 문제 풀기</span>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn-nav btn-prev" onclick="prevStep(3)">이전</button>
+          <button class="btn-nav btn-start" onclick="startTimer()">타이머 시작</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 타이머 진행 화면 -->
+    <div id="timer-screen" class="timer-screen">
+      <div style="color: var(--accent-blue); font-size:14px; font-weight:600;">타이머 진행 중</div>
+      <div class="timer-display" id="time-left">00:00</div>
+      
+      <div class="preview-meme-box">
+        <img id="timer-meme-img" class="preview-meme-img" src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'&gt;&lt;rect width='100%' height='100%' fill='%23111217'/&gt;&lt;circle cx='200' cy='140' r='90' fill='%232a1e17'/&gt;&lt;circle cx='165' cy='120' r='22' fill='%23ffffff'/&gt;&lt;circle cx='235' cy='120' r='22' fill='%23ffffff'/&gt;&lt;circle cx='165' cy='120' r='9' fill='%23000000'/&gt;&lt;circle cx='235' cy='120' r='9' fill='%23000000'/&gt;&lt;ellipse cx='200' cy='180' rx='30' ry='40' fill='%23000000'/&gt;&lt;path d='M 120 70 Q 165 95 180 80' stroke='%23000' stroke-width='6' fill='none'/&gt;&lt;path d='M 280 70 Q 235 95 220 80' stroke='%23000' stroke-width='6' fill='none'/&gt;&lt;text x='200' y='270' font-size='18' fill='%23ff4757' font-weight='bold' text-anchor='middle'&gt;스마트폰 과다사용 감지!&lt;/text&gt;&lt;/svg&gt;">
+      </div>
+
+      <div style="text-align:left; background: rgba(0,0,0,0.2); padding:12px; border-radius:8px; border:1px solid var(--card-border); margin-top:15px;">
+        <span style="font-size:12px; color:var(--text-sub);">사용 허용된 예외 앱:</span>
+        <div class="app-tags" id="timer-allowed-apps" style="margin-top:6px;"></div>
+      </div>
+
+      <button class="btn-prev" style="margin-top:20px; padding:10px 20px; border-radius:8px; cursor:pointer;" onclick="cancelTimer()">타이머 취소</button>
+    </div>
+  </div>
+
+  <!-- 경보 팝업 -->
+  <div id="siren-overlay" class="siren-overlay">
+    <div class="siren-content">
+      <h2 style="color:var(--accent-red); font-size:22px; margin-bottom:8px;">제한시간이 종료되었습니다</h2>
+      <p style="font-size:13px; color:var(--text-sub);">경보음을 끄려면 잠금 해제 미션을 완료하세요.</p>
+      <img id="siren-meme-img" class="siren-img" src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'&gt;&lt;rect width='100%' height='100%' fill='%23111217'/&gt;&lt;circle cx='200' cy='140' r='90' fill='%232a1e17'/&gt;&lt;circle cx='165' cy='120' r='22' fill='%23ffffff'/&gt;&lt;circle cx='235' cy='120' r='22' fill='%23ffffff'/&gt;&lt;circle cx='165' cy='120' r='9' fill='%23000000'/&gt;&lt;circle cx='235' cy='120' r='9' fill='%23000000'/&gt;&lt;ellipse cx='200' cy='180' rx='30' ry='40' fill='%23000000'/&gt;&lt;path d='M 120 70 Q 165 95 180 80' stroke='%23000' stroke-width='6' fill='none'/&gt;&lt;path d='M 280 70 Q 235 95 220 80' stroke='%23000' stroke-width='6' fill='none'/&gt;&lt;text x='200' y='270' font-size='18' fill='%23ff4757' font-weight='bold' text-anchor='middle'&gt;스마트폰 과다사용 감지!&lt;/text&gt;&lt;/svg&gt;">
+      
+      <div class="mission-box">
+        <div id="mission-question" style="font-size:15px; color:var(--accent-blue); font-weight:bold; margin-bottom:12px;"></div>
+        <input type="text" id="mission-answer" class="text-input" style="width:100%; text-align:center; font-size:16px;" placeholder="답안 입력">
+        <button class="btn-start" style="width:100%; font-size:15px; padding:12px; margin-top:12px; background:var(--accent-red); color:#fff;" onclick="checkMission()">알람 정지</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 코드 복사 모달 -->
+  <div id="code-modal" class="modal">
+    <div class="modal-body">
+      <h3 style="color:var(--text-main);">전체 HTML 소스코드</h3>
+      <textarea id="code-text" class="code-area" readonly=""></textarea>
+      <div style="margin-top:16px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn-copy" onclick="copyToClipboard()">클립보드에 복사</button>
+        <button class="btn-step" onclick="closeCodeModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 내장 SVG 백업 밈 일러스트레이션 Data URL
+    const defaultMemeData = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='100%' height='100%' fill='%23111217'/><circle cx='200' cy='140' r='90' fill='%232a1e17'/><circle cx='165' cy='120' r='22' fill='%23ffffff'/><circle cx='235' cy='120' r='22' fill='%23ffffff'/><circle cx='165' cy='120' r='9' fill='%23000000'/><circle cx='235' cy='120' r='9' fill='%23000000'/><ellipse cx='200' cy='180' rx='30' ry='40' fill='%23000000'/><path d='M 120 70 Q 165 95 180 80' stroke='%23000' stroke-width='6' fill='none'/><path d='M 280 70 Q 235 95 220 80' stroke='%23000' stroke-width='6' fill='none'/><text x='200' y='270' font-size='18' fill='%23ff4757' font-weight='bold' text-anchor='middle'>스마트폰 과다사용 감지!</text></svg>";
+
+    let currentStep = 1;
+    let timerInterval = null;
+    let totalSeconds = 0;
+    let customAudioData = null;
+    let customImageData = defaultMemeData;
+    let audioCtx = null;
+    let sirenOscillator = null;
+    let isSirenPlaying = false;
+    let currentMathAnswer = 0;
+    const typingTarget = "지금 잠을 자면 꿈을 꾸지만 공부를 하면 꿈을 이룬다";
+
+    window.onload = function() {
+      document.getElementById('main-meme-img').src = customImageData;
+      document.getElementById('timer-meme-img').src = customImageData;
+      document.getElementById('siren-meme-img').src = customImageData;
+      updateSummary();
+    };
+
+    function nextStep(step) {
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      document.getElementById(`bubble-${currentStep}`).classList.remove('active');
+      document.getElementById(`bubble-${currentStep}`).classList.add('completed');
+
+      currentStep = step;
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      document.getElementById(`bubble-${currentStep}`).classList.add('active');
+
+      if (currentStep === 4) {
+        updateSummary();
+      }
+    }
+
+    function prevStep(step) {
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      document.getElementById(`bubble-${currentStep}`).classList.remove('active');
+
+      currentStep = step;
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      document.getElementById(`bubble-${currentStep}`).classList.add('active');
+      document.getElementById(`bubble-${currentStep}`).classList.remove('completed');
+    }
+
+    function addTime(mins) {
+      const minInput = document.getElementById('input-min');
+      let val = parseInt(minInput.value) || 0;
+      val = Math.max(1, val + mins);
+      minInput.value = val;
+    }
+
+    function setPreset(mins) {
+      document.getElementById('input-min').value = mins;
+      document.getElementById('input-sec').value = 0;
+    }
+
+    function toggleCustomAudioInput() {
+      const val = document.getElementById('sound-select').value;
+      document.getElementById('custom-audio-box').style.display = val === 'custom' ? 'block' : 'none';
+      updateSummary();
+    }
+
+    function handleAudioUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) { customAudioData = evt.target.result; };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          customImageData = evt.target.result;
+          document.getElementById('main-meme-img').src = customImageData;
+          document.getElementById('timer-meme-img').src = customImageData;
+          document.getElementById('siren-meme-img').src = customImageData;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addApp() {
+      const input = document.getElementById('new-app-input');
+      const val = input.value.trim();
+      if (val) {
+        const tagsBox = document.getElementById('app-tags');
+        const span = document.createElement('span');
+        span.className = 'app-chip';
+        span.innerHTML = `${val} <button onclick="removeApp(this)">✕</button>`;
+        tagsBox.appendChild(span);
+        input.value = '';
+        updateSummary();
+      }
+    }
+
+    function removeApp(btn) {
+      btn.parentElement.remove();
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const mins = parseInt(document.getElementById('input-min').value) || 0;
+      const secs = parseInt(document.getElementById('input-sec').value) || 0;
+      document.getElementById('summary-time').textContent = `${mins}분 ${String(secs).padStart(2, '0')}초`;
+
+      const soundSelect = document.getElementById('sound-select');
+      document.getElementById('summary-sound').textContent = soundSelect.options[soundSelect.selectedIndex].text;
+
+      const appCount = document.querySelectorAll('#app-tags .app-chip').length;
+      document.getElementById('summary-apps').textContent = `${appCount}개`;
+
+      const missionSelect = document.getElementById('mission-select');
+      document.getElementById('summary-mission').textContent = missionSelect.options[missionSelect.selectedIndex].text;
+    }
+
+    function startTimer() {
+      const mins = parseInt(document.getElementById('input-min').value) || 0;
+      const secs = parseInt(document.getElementById('input-sec').value) || 0;
+      totalSeconds = (mins * 60) + secs;
+
+      if (totalSeconds <= 0) {
+        alert("시간을 올바르게 설정해 주세요.");
+        return;
+      }
+
+      const chips = document.querySelectorAll('#app-tags .app-chip');
+      const allowedBox = document.getElementById('timer-allowed-apps');
+      allowedBox.innerHTML = '';
+      chips.forEach(chip => {
+        const text = chip.childNodes[0].textContent.trim();
+        const newChip = document.createElement('span');
+        newChip.className = 'app-chip';
+        newChip.textContent = text;
+        allowedBox.appendChild(newChip);
+      });
+
+      document.getElementById('wizard-form').style.display = 'none';
+      document.getElementById('step-indicator').style.display = 'none';
+      document.getElementById('timer-screen').style.display = 'block';
+
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        totalSeconds--;
+        updateTimerDisplay();
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          triggerSiren();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      document.getElementById('time-left').textContent = 
+        `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function cancelTimer() {
+      clearInterval(timerInterval);
+      document.getElementById('wizard-form').style.display = 'block';
+      document.getElementById('step-indicator').style.display = 'flex';
+      document.getElementById('timer-screen').style.display = 'none';
+    }
+
+    function triggerSiren() {
+      document.getElementById('siren-overlay').style.display = 'flex';
+      playAlarmSound();
+      setupMission();
+    }
+
+    function playAlarmSound() {
+      const soundType = document.getElementById('sound-select').value;
+      if (soundType === 'custom' && customAudioData) {
+        const audio = new Audio(customAudioData);
+        audio.loop = true;
+        audio.play();
+        window.currentCustomAudio = audio;
+      } else {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          sirenOscillator = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          
+          sirenOscillator.type = 'sawtooth';
+          sirenOscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+          
+          let freq = 440;
+          let rising = true;
+          isSirenPlaying = true;
+          
+          setInterval(() => {
+            if (!isSirenPlaying) return;
+            if (rising) {
+              freq += 40;
+              if (freq > 880) rising = false;
+            } else {
+              freq -= 40;
+              if (freq < 440) rising = true;
+            }
+            if (sirenOscillator && audioCtx) {
+              sirenOscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            }
+          }, 40);
+
+          sirenOscillator.connect(gain);
+          gain.connect(audioCtx.destination);
+          sirenOscillator.start();
+        } catch(e) { console.log(e); }
+      }
+    }
+
+    function stopAlarmSound() {
+      isSirenPlaying = false;
+      if (window.currentCustomAudio) {
+        window.currentCustomAudio.pause();
+      }
+      if (sirenOscillator) {
+        sirenOscillator.stop();
+      }
+      if (audioCtx) {
+        audioCtx.close();
+      }
+    }
+
+    function setupMission() {
+      const type = document.getElementById('mission-select').value;
+      const qBox = document.getElementById('mission-question');
+      document.getElementById('mission-answer').value = '';
+
+      if (type === 'math') {
+        const num1 = Math.floor(Math.random() * 30) + 12;
+        const num2 = Math.floor(Math.random() * 8) + 3;
+        currentMathAnswer = num1 * num2;
+        qBox.textContent = `연산 문제: ${num1} × ${num2} = ?`;
+      } else {
+        qBox.textContent = `입력 문장: "${typingTarget}"`;
+      }
+    }
+
+    function checkMission() {
+      const type = document.getElementById('mission-select').value;
+      const ans = document.getElementById('mission-answer').value.trim();
+
+      if (type === 'math') {
+        if (parseInt(ans) === currentMathAnswer) {
+          stopSiren();
+        } else {
+          alert('정답이 아닙니다. 다시 시도해 주세요.');
+        }
+      } else {
+        if (ans === typingTarget) {
+          stopSiren();
+        } else {
+          alert('문장이 정확히 일치하지 않습니다.');
+        }
+      }
+    }
+
+    function stopSiren() {
+      stopAlarmSound();
+      document.getElementById('siren-overlay').style.display = 'none';
+      document.getElementById('wizard-form').style.display = 'block';
+      document.getElementById('step-indicator').style.display = 'flex';
+      document.getElementById('timer-screen').style.display = 'none';
+    }
+
+    function openCodeModal() {
+      document.getElementById('code-text').value = document.documentElement.outerHTML;
+      document.getElementById('code-modal').style.display = 'flex';
+    }
+
+    function closeCodeModal() {
+      document.getElementById('code-modal').style.display = 'none';
+    }
+
+    function copyToClipboard() {
+      const textarea = document.getElementById('code-text');
+      textarea.select();
+      document.execCommand('copy');
+      alert('클립보드에 코드가 복사되었습니다.');
+    }
+  </script>
+
+</body></html>
