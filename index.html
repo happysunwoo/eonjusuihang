@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>스마트폰 몰입 타이머 앱</title>
+  <style>
+    :root {
+      --app-bg: #0d0e12;
+      --card-bg: #181a20;
+      --card-border: #2a2d37;
+      --accent-green: #00e676;
+      --accent-blue: #00b0ff;
+      --accent-red: #ff5252;
+      --text-primary: #ffffff;
+      --text-secondary: #90a4ae;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #000;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+    }
+
+    /* 모바일 스마트폰 프레임 */
+    .phone-container {
+      width: 100%;
+      max-width: 414px;
+      height: 100vh;
+      max-height: 850px;
+      background-color: var(--app-bg);
+      border: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    }
+
+    @media (min-width: 415px) {
+      .phone-container {
+        border-radius: 40px;
+        height: 840px;
+        border: 8px solid #222;
+      }
+    }
+
+    /* 상단 앱 헤더 */
+    .app-header {
+      padding: 18px 20px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .app-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-green);
+      letter-spacing: 1px;
+    }
+
+    /* 메인 화면 스크롤 영역 */
+    .app-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 단계별 step 카드 */
+    .step-panel {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .step-panel.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 15px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 15px;
+    }
+
+    /* 시간 설정 컨트롤 */
+    .time-display-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .time-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .time-num-input {
+      width: 80px;
+      height: 60px;
+      background: #000;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--accent-green);
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .time-num-input:focus {
+      outline: none;
+      border-color: var(--accent-green);
+    }
+
+    .time-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .time-colon {
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--text-secondary);
+    }
+
+    .btn-group-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-app {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-app:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* 모바일 폼 요소 */
+    .select-app {
+      width: 100%;
+      background: #000;
+      color: var(--text-primary);
+      border: 1px solid var(--card-border);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .file-input {
+      width: 100%;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .app-chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .app-chip {
+      background: rgba(0, 176, 255, 0.12);
+      border: 1px solid rgba(0, 176, 255, 0.3);
+      color: var(--accent-blue);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .app-chip button {
+      background: none;
+      border: none;
+      color: var(--accent-red);
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .input-text {
+      flex: 1;
+      background: #000;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+
+    .preview-box {
+      text-align: center;
+      margin-top: auto;
+      margin-bottom: 10px;
+    }
+
+    .preview-img {
+      width: 100%;
+      max-height: 180px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: #000;
+      border: 1px solid var(--card-border);
+    }
+
+    /* 모바일 하단 네비게이션 & 버튼 */
+    .btn-action-primary {
+      width: 100%;
+      background: var(--accent-green);
+      color: #000;
+      border: none;
+      padding: 15px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .nav-bar {
+      height: 65px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 25%;
+    }
+
+    .nav-item.active {
+      color: var(--accent-green);
+    }
+
+    .nav-icon-text {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    /* 타이머 진행 및 사이렌 Overlay */
+    .timer-screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .timer-big {
+      font-size: 56px;
+      font-weight: 800;
+      color: var(--accent-green);
+      font-family: monospace;
+      margin: 15px 0;
+    }
+
+    .siren-screen {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0d0e12;
+      z-index: 1000;
+      flex-direction: column;
+      padding: 24px;
+      text-align: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone-container">
+    <!-- 앱 상단 헤더 -->
+    <div class="app-header">
+      <div class="app-title">FOCUS TIMER</div>
+    </div>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <div class="app-content">
+      
+      <!-- STEP 1: 제한시간 설정 -->
+      <div id="step-1" class="step-panel active">
+        <div class="step-badge">STEP 01</div>
+        <div class="step-title">제한시간 설정</div>
+        
+        <div class="card">
+          <div class="time-display-box">
+            <div class="time-unit">
+              <input type="number" id="input-min" class="time-num-input" value="30" min="0" max="999">
+              <span class="time-label">분 (Minutes)</span>
+            </div>
+            <span class="time-colon">:</span>
+            <div class="time-unit">
+              <input type="number" id="input-sec" class="time-num-input" value="0" min="0" max="59">
+              <span class="time-label">초 (Seconds)</span>
+            </div>
+          </div>
+
+          <div class="btn-group-grid">
+            <button class="btn-app" onclick="addMins(1)">+1분</button>
+            <button class="btn-app" onclick="addMins(5)">+5분</button>
+            <button class="btn-app" onclick="addMins(10)">+10분</button>
+            <button class="btn-app" onclick="addMins(-1)">-1분</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <span style="font-size: 12px; color: var(--text-secondary);">빠른 시간 선택</span>
+          <div class="btn-group-grid" style="margin-top: 8px;">
+            <button class="btn-app" onclick="setPreset(15)">15분</button>
+            <button class="btn-app" onclick="setPreset(30)">30분</button>
+            <button class="btn-app" onclick="setPreset(45)">45분</button>
+            <button class="btn-app" onclick="setPreset(60)">60분</button>
+          </div>
+        </div>
+
+        <button class="btn-action-primary" style="margin-top: auto;" onclick="goToStep(2)">다음 설정 (2/4)</button>
+      </div>
+
+      <!-- STEP 2: 경보음 & 이미지 -->
+      <div id="step-2" class="step-panel">
+        <div class="step-badge">STEP 02</div>
+        <div class="step-title">경보음 및 커스텀</div>
+
+        <div class="card">
+          <span style="font-size:12px; color:var(--text-secondary);">경보음 종류</span>
+          <select id="sound-select" class="select-app" onchange="toggleAudioUpload()">
+            <option value="siren">기본 전자 경보음</option>
+            <option value="custom">오디오 파일 업로드 (.mp3)</option>
+          </select>
+
+          <div id="custom-audio-box" style="display:none; margin-top:10px;">
+            <input type="file" id="audio-file" class="file-input" accept="audio/*" onchange="handleAudioUpload(event)">
+          </div>
+        </div>
+
+        <div class="card">
+          <span style="font-size:12px; color:var(--text-secondary);">경보 화면 이미지 업로드</span>
+          <input type="file" id="image-file" class="file-input" accept="image/*" onchange="handleImageUpload(event)">
+        </div>
+
+        <div class="preview-box">
+          <img id="main-preview-img" class="preview-img" alt="미리보기">
+        </div>
+
+        <button class="btn-action-primary" onclick="goToStep(3)">다음 설정 (3/4)</button>
+      </div>
+
+      <!-- STEP 3: 예외 앱 목록 -->
+      <div id="step-3" class="step-panel">
+        <div class="step-badge">STEP 03</div>
+        <div class="step-title">사용 허용 앱 설정</div>
+
+        <div class="card">
+          <span style="font-size:12px; color:var(--text-secondary);">제한 시간 중 허용되는 필수 앱</span>
+          <div class="app-chip-container" id="app-chips">
+            <span class="app-chip">전화 <button onclick="removeApp(this)">✕</button></span>
+            <span class="app-chip">문자메시지 <button onclick="removeApp(this)">✕</button></span>
+            <span class="app-chip">카카오톡 <button onclick="removeApp(this)">✕</button></span>
+          </div>
+
+          <div class="input-row">
+            <input type="text" id="app-input" class="input-text" placeholder="앱 이름 입력">
+            <button class="btn-app" style="background:var(--accent-blue); color:#000;" onclick="addApp()">추가</button>
+          </div>
+        </div>
+
+        <button class="btn-action-primary" style="margin-top: auto;" onclick="goToStep(4)">마지막 설정 (4/4)</button>
+      </div>
+
+      <!-- STEP 4: 해제 미션 & 시작 -->
+      <div id="step-4" class="step-panel">
+        <div class="step-badge">STEP 04</div>
+        <div class="step-title">잠금 해제 미션</div>
+
+        <div class="card">
+          <span style="font-size:12px; color:var(--text-secondary);">알람 종료 미션 방식</span>
+          <select id="mission-select" class="select-app">
+            <option value="math">수학 연산 문제 풀기</option>
+            <option value="typing">지정 문장 입력하기</option>
+          </select>
+        </div>
+
+        <div class="preview-box">
+          <img id="final-preview-img" class="preview-img">
+        </div>
+
+        <button class="btn-action-primary" style="background:var(--accent-green);" onclick="startTimer()">타이머 작동 시작</button>
+      </div>
+
+      <!-- 타이머 진행 화면 -->
+      <div id="timer-screen" class="timer-screen">
+        <div class="step-badge">COUNTDOWN</div>
+        <div class="timer-big" id="time-left-display">00:00</div>
+        
+        <img id="timer-preview-img" class="preview-img" style="margin-bottom:15px;">
+
+        <div class="card" style="width:100%; text-align:left;">
+          <span style="font-size:11px; color:var(--text-secondary);">사용 허용된 앱:</span>
+          <div class="app-chip-container" id="timer-allowed-apps"></div>
+        </div>
+
+        <button class="btn-app" style="margin-top:15px; color:var(--accent-red); border-color:var(--accent-red);" onclick="cancelTimer()">타이머 중단</button>
+      </div>
+
+    </div>
+
+    <!-- 하단 모바일 내비게이션 바 -->
+    <div class="nav-bar" id="main-nav">
+      <button class="nav-item active" id="nav-1" onclick="goToStep(1)">
+        <span class="nav-icon-text">01</span>시간설정
+      </button>
+      <button class="nav-item" id="nav-2" onclick="goToStep(2)">
+        <span class="nav-icon-text">02</span>경보음
+      </button>
+      <button class="nav-item" id="nav-3" onclick="goToStep(3)">
+        <span class="nav-icon-text">03</span>예외앱
+      </button>
+      <button class="nav-item" id="nav-4" onclick="goToStep(4)">
+        <span class="nav-icon-text">04</span>미션
+      </button>
+    </div>
+
+    <!-- 경보 및 미션 전체 화면 Overlay -->
+    <div id="siren-screen" class="siren-screen">
+      <h2 style="color:var(--accent-red); font-size:22px; margin-bottom:10px;">제한시간 종료!</h2>
+      <p style="font-size:12px; color:var(--text-secondary);">경보를 끄기 위해 미션을 완료하세요.</p>
+      
+      <img id="siren-preview-img" class="preview-img" style="margin: 15px 0;">
+
+      <div class="card">
+        <div id="mission-q" style="font-size:14px; font-weight:700; color:var(--accent-blue); margin-bottom:10px;"></div>
+        <input type="text" id="mission-a" class="input-text" style="text-align:center; font-size:16px;" placeholder="정답 입력">
+        <button class="btn-action-primary" style="background:var(--accent-red); color:#fff; margin-top:10px;" onclick="checkMission()">알람 해제</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // SVG 밈 데이터 URL
+    const defaultImgData = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='100%' height='100%' fill='%23111'/><circle cx='200' cy='140' r='90' fill='%23704214'/><circle cx='165' cy='120' r='18' fill='%23fff'/><circle cx='235' cy='120' r='18' fill='%23fff'/><circle cx='165' cy='120' r='7' fill='%23000'/><circle cx='235' cy='120' r='7' fill='%23000'/><ellipse cx='200' cy='180' rx='30' ry='40' fill='%23000'/><text x='200' y='265' font-size='18' fill='%23ff5252' font-weight='bold' text-anchor='middle'>스마트폰 오버 사용 감지!</text></svg>";
+
+    let currentStep = 1;
+    let timerInterval = null;
+    let totalSeconds = 0;
+    let customAudioData = null;
+    let customImageData = defaultImgData;
+    let audioCtx = null;
+    let sirenOsc = null;
+    let isSirenActive = false;
+    let mathAnswer = 0;
+    const typingGoal = "지금 잠을 자면 꿈을 꾸지만 공부를 하면 꿈을 이룬다";
+
+    window.onload = function() {
+      updateAllImages(customImageData);
+    };
+
+    function updateAllImages(src) {
+      document.getElementById('main-preview-img').src = src;
+      document.getElementById('final-preview-img').src = src;
+      document.getElementById('timer-preview-img').src = src;
+      document.getElementById('siren-preview-img').src = src;
+    }
+
+    function goToStep(step) {
+      currentStep = step;
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`step-${step}`).classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`nav-${step}`).classList.add('active');
+    }
+
+    function addMins(m) {
+      const input = document.getElementById('input-min');
+      let val = parseInt(input.value) || 0;
+      input.value = Math.max(0, val + m);
+    }
+
+    function setPreset(m) {
+      document.getElementById('input-min').value = m;
+      document.getElementById('input-sec').value = 0;
+    }
+
+    function toggleAudioUpload() {
+      const val = document.getElementById('sound-select').value;
+      document.getElementById('custom-audio-box').style.display = val === 'custom' ? 'block' : 'none';
+    }
+
+    function handleAudioUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => { customAudioData = evt.target.result; };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          customImageData = evt.target.result;
+          updateAllImages(customImageData);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addApp() {
+      const input = document.getElementById('app-input');
+      const val = input.value.trim();
+      if (val) {
+        const container = document.getElementById('app-chips');
+        const span = document.createElement('span');
+        span.className = 'app-chip';
+        span.innerHTML = `${val} <button onclick="removeApp(this)">✕</button>`;
+        container.appendChild(span);
+        input.value = '';
+      }
+    }
+
+    function removeApp(btn) {
+      btn.parentElement.remove();
+    }
+
+    function startTimer() {
+      const m = parseInt(document.getElementById('input-min').value) || 0;
+      const s = parseInt(document.getElementById('input-sec').value) || 0;
+      totalSeconds = (m * 60) + s;
+
+      if (totalSeconds <= 0) {
+        alert("시간을 설정해 주세요.");
+        return;
+      }
+
+      // 예외 앱 복사
+      const chips = document.querySelectorAll('#app-chips .app-chip');
+      const allowedBox = document.getElementById('timer-allowed-apps');
+      allowedBox.innerHTML = '';
+      chips.forEach(chip => {
+        const text = chip.childNodes[0].textContent.trim();
+        const span = document.createElement('span');
+        span.className = 'app-chip';
+        span.textContent = text;
+        allowedBox.appendChild(span);
+      });
+
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('main-nav').style.display = 'none';
+      document.getElementById('timer-screen').style.display = 'flex';
+
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        totalSeconds--;
+        updateTimerDisplay();
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          triggerSiren();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      document.getElementById('time-left-display').textContent = 
+        `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function cancelTimer() {
+      clearInterval(timerInterval);
+      document.getElementById('timer-screen').style.display = 'none';
+      document.getElementById('main-nav').style.display = 'flex';
+      goToStep(1);
+    }
+
+    function triggerSiren() {
+      document.getElementById('siren-screen').style.display = 'flex';
+      playAlarm();
+      setupMission();
+    }
+
+    function playAlarm() {
+      const type = document.getElementById('sound-select').value;
+      if (type === 'custom' && customAudioData) {
+        const audio = new Audio(customAudioData);
+        audio.loop = true;
+        audio.play();
+        window.activeAudio = audio;
+      } else {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          sirenOsc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          
+          sirenOsc.type = 'sawtooth';
+          sirenOsc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          
+          let freq = 440;
+          let up = true;
+          isSirenActive = true;
+          
+          setInterval(() => {
+            if (!isSirenActive) return;
+            freq += up ? 40 : -40;
+            if (freq > 880) up = false;
+            if (freq < 440) up = true;
+            if (sirenOsc && audioCtx) {
+              sirenOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            }
+          }, 40);
+
+          sirenOsc.connect(gain);
+          gain.connect(audioCtx.destination);
+          sirenOsc.start();
+        } catch(e) {}
+      }
+    }
+
+    function stopAlarm() {
+      isSirenActive = false;
+      if (window.activeAudio) window.activeAudio.pause();
+      if (sirenOsc) sirenOsc.stop();
+      if (audioCtx) audioCtx.close();
+    }
+
+    function setupMission() {
+      const type = document.getElementById('mission-select').value;
+      const qBox = document.getElementById('mission-q');
+      document.getElementById('mission-a').value = '';
+
+      if (type === 'math') {
+        const n1 = Math.floor(Math.random() * 30) + 12;
+        const n2 = Math.floor(Math.random() * 8) + 3;
+        mathAnswer = n1 * n2;
+        qBox.textContent = `계산: ${n1} × ${n2} = ?`;
+      } else {
+        qBox.textContent = `입력: "${typingGoal}"`;
+      }
+    }
+
+    function checkMission() {
+      const type = document.getElementById('mission-select').value;
+      const ans = document.getElementById('mission-a').value.trim();
+
+      if (type === 'math') {
+        if (parseInt(ans) === mathAnswer) stopSiren();
+        else alert('정답이 아닙니다.');
+      } else {
+        if (ans === typingGoal) stopSiren();
+        else alert('문장이 일치하지 않습니다.');
+      }
+    }
+
+    function stopSiren() {
+      stopAlarm();
+      document.getElementById('siren-screen').style.display = 'none';
+      document.getElementById('timer-screen').style.display = 'none';
+      document.getElementById('main-nav').style.display = 'flex';
+      goToStep(1);
+    }
+  </script>
+</body>
+</html>
